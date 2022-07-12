@@ -23,11 +23,7 @@ pipeline {
     }
 
             stage('Code Compile') {
-		       when {
-			      expression {
-				      env.PROJECT == env.DEV_NAMESPACE
-			      } 
-				}
+		       
                 steps {
                   sh "${mvnCmd} clean package -DskipTests=true -Dversion=${env.BUILD_NUMBER}"
                 }
@@ -67,11 +63,7 @@ pipeline {
 			 }
 
 	            stage('Image build') { 
-		        when {
-			       expression {
-				      env.PROJECT == env.DEV_NAMESPACE
-			      } 
-					}
+		        
 				  steps{      
 					  script{
 					    try { 	  
