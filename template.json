@@ -1,0 +1,212 @@
+{
+	"kind": "Template",
+	"apiVersion": "v1",
+	"metadata": {
+		"name": "${NAME}",
+		"annotations": {
+			"tags": "${NAME}",
+			"iconClass": "icon-${NAME}",
+			"openshift.io/provider-display-name": "Sample Pipeline"
+		}
+	},
+	"labels": {
+		"template": "${NAME}",
+		"app": "${NAME}"
+	},
+	"objects": [
+		{
+			"apiVersion": "v1",
+			"kind": "ImageStream",
+			"metadata": {
+				"name": "${NAME}"
+			},
+			"spec": {
+				"lookupPolicy": {
+					"local": false
+				}
+			}
+		},
+		{
+			"apiVersion": "v1",
+			"kind": "BuildConfig",
+			"metadata": {
+				"labels": {
+					"app": "${NAME}"
+				},
+				"name": "${NAME}"
+			},
+			"spec": {
+				"output": {
+					"to": {
+						"kind": "ImageStreamTag",
+						"name": "${NAME}:latest"
+					}
+				},
+				"source": {
+					"binary": {
+						
+					},
+					"type": "Binary"
+				},
+				"strategy": {
+					"sourceStrategy": {
+						"from": {
+							"kind": "ImageStreamTag",
+							"name": "fuse7-java-openshift:1.6",
+							"namespace": "openshift"
+						},
+						"type": "Source"
+					}
+				}
+			}
+		},
+		{
+			"kind": "Service",
+			"apiVersion": "v1",
+			"metadata": {
+				"name": "${NAME}",
+				"annotations": {
+					"description": "Exposes and load balances the application pods"
+				}
+			},
+			"spec": {
+				"ports": [
+					{
+						"name": "8080-tcp",
+						"port": 8080,
+						"targetPort": 8080
+					}
+				],
+				"selector": {
+					"name": "${NAME}"
+				}
+			}
+		},
+		{
+			"kind": "Route",
+			"apiVersion": "v1",
+			"metadata": {
+				"name": "${NAME}"
+			},
+			"spec": {
+				"port": {
+					"targetPort": "8080-tcp"
+				},
+				"to": {
+					"kind": "Service",
+					"name": "${NAME}"
+				}
+			}
+		},
+		{
+			"kind": "DeploymentConfig",
+			"apiVersion": "v1",
+			"metadata": {
+				"name": "${NAME}",
+				"annotations": {
+					"description": "Defines how to deploy the application server",
+					"template.alpha.openshift.io/wait-for-ready": "true"
+				}
+			},
+			"spec": {
+				"strategy": {
+					"type": "Rolling"
+				},
+				"replicas": 1,
+				"selector": {
+					"name": "${NAME}"
+				},
+				"triggers": [],
+				"template": {
+					"metadata": {
+						"name": "${NAME}",
+						"labels": {
+							"name": "${NAME}"
+						}
+					},
+					"spec": {
+						"containers": [
+							{
+                             "env": [
+									
+									{
+                                      "name": "PROJECT",
+                                      "value": "${PROJECT}"
+                                    } ,
+
+                                    {
+									"name": "mongodb.pass",
+									"valueFrom": {
+									    "secretKeyRef": {
+										"key": "password",
+										"name": "mongodb-cred"
+									    }
+									}
+								    }
+
+
+                                     ],
+								"name": "${NAME}",
+								"image": "image-registry.openshift-image-registry.svc:5000/${PROJECT}/${NAME}:latest",
+								"ports": [
+									{
+										"containerPort": 8080
+									},
+									{
+										"containerPort": 8081
+									}
+
+								],
+								
+								"resources": {
+									"limits": {
+										"memory": "500Mi",
+										"cpu": "1000m"
+									},
+									"requests": {
+										"cpu": "100m",
+										"memory": "256Mi"
+									}
+								},
+								"volumeMounts": [
+									{
+										"mountPath": "/deployments/config",
+										"name": "${NAME}-config"
+									}
+								]
+							}
+						],
+						"volumes": [
+							{
+								"configMap": {
+								    "items": [
+                                        {
+                                            "key": "application-${PROJECT}.properties",
+                                            "path": "application.properties"
+                                        }
+                                    ],
+									"name": "${NAME}"
+								},
+								"name": "${NAME}-config"
+							}
+						]
+					}
+				}
+			}
+		}
+	],
+	"parameters": [
+		{
+			"name": "NAME",
+			"displayName": "Name",
+			"required": true,
+			"value": "camel-springboot-xml"
+		},
+		{
+			"name": "PROJECT",
+			"displayName": "Project",
+			"description": "Project",
+			"required": true
+		}
+	]
+}
