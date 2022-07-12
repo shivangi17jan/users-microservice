@@ -1,0 +1,91 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  annotations:
+    app.quarkus.io/commit-id: 499d76dc17d3c414089020ce445bb8271156d094
+    app.quarkus.io/build-timestamp: 2022-07-12 - 07:17:56 +0000
+  labels:
+    app.kubernetes.io/version: 1.0-SNAPSHOT
+    app.kubernetes.io/name: users-microservice
+  name: users-microservice
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    app.quarkus.io/commit-id: 499d76dc17d3c414089020ce445bb8271156d094
+    app.quarkus.io/build-timestamp: 2022-07-12 - 07:17:56 +0000
+  labels:
+    app.kubernetes.io/name: users-microservice
+    app.kubernetes.io/version: 1.0-SNAPSHOT
+  name: users-microservice
+spec:
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+  selector:
+    app.kubernetes.io/name: users-microservice
+    app.kubernetes.io/version: 1.0-SNAPSHOT
+  type: ClusterIP
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: users-microservice-view
+roleRef:
+  kind: ClusterRole
+  apiGroup: rbac.authorization.k8s.io
+  name: view
+subjects:
+  - kind: ServiceAccount
+    name: users-microservice
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    app.quarkus.io/commit-id: 499d76dc17d3c414089020ce445bb8271156d094
+    app.quarkus.io/build-timestamp: 2022-07-12 - 07:17:56 +0000
+  labels:
+    app.kubernetes.io/version: 1.0-SNAPSHOT
+    app.kubernetes.io/name: users-microservice
+  name: users-microservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/version: 1.0-SNAPSHOT
+      app.kubernetes.io/name: users-microservice
+  template:
+    metadata:
+      annotations:
+        app.quarkus.io/commit-id: 499d76dc17d3c414089020ce445bb8271156d094
+        app.quarkus.io/build-timestamp: 2022-07-12 - 07:17:56 +0000
+      labels:
+        app.kubernetes.io/version: 1.0-SNAPSHOT
+        app.kubernetes.io/name: users-microservice
+    spec:
+      containers:
+        - command:
+            - java
+            - -Dquarkus.http.host=0.0.0.0
+            - -Djava.util.logging.manager=org.jboss.logmanager.LogManager
+            - -jar
+            - /deployments/quarkus-run.jar
+          env:
+            - name: KUBERNETES_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: JAVA_APP_JAR
+              value: /deployments/quarkus-run.jar
+          image: shivangisharma/users-microservice:1.0-SNAPSHOT
+          imagePullPolicy: Always
+          name: users-microservice
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+      serviceAccountName: users-microservice

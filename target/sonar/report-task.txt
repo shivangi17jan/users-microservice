@@ -1,0 +1,6 @@
+projectKey=users-microservice
+serverUrl=https://sonar-sonar-qube-test.apps.aw-ue1-sb1.7v1h.p1.openshiftapps.com
+serverVersion=9.5.0.56709
+dashboardUrl=https://sonar-sonar-qube-test.apps.aw-ue1-sb1.7v1h.p1.openshiftapps.com/dashboard?id=users-microservice
+ceTaskId=AYHxReBgbYXy19ft32Gr
+ceTaskUrl=https://sonar-sonar-qube-test.apps.aw-ue1-sb1.7v1h.p1.openshiftapps.com/api/ce/task?id=AYHxReBgbYXy19ft32Gr
