@@ -45,6 +45,7 @@ pipeline {
 				    openshift.withCluster() {
 					openshift.withProject(env.PROJECT) {
 						echo "Using project: ${openshift.project()}"
+						echo "Using project2: ${env.PROJECt}"
 						if(!openshift.selector("all", [ template : "${NAME}"]).exists()){
 							openshift.newApp(templatePath,"-p PROJECT=${env.PROJECT}")
 
