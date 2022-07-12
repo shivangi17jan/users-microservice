@@ -200,13 +200,14 @@
 			"name": "NAME",
 			"displayName": "Name",
 			"required": true,
-			"value": "camel-springboot-xml"
+			"value": "users-microservice"
 		},
 		{
 			"name": "PROJECT",
 			"displayName": "Project",
 			"description": "Project",
-			"required": true
+			"required": true,
+			"value": "sample-app"
 		}
 	]
 }
