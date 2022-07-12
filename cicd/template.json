@@ -132,17 +132,7 @@
 									{
                                       "name": "PROJECT",
                                       "value": "${PROJECT}"
-                                    } ,
-
-                                    {
-									"name": "mongodb.pass",
-									"valueFrom": {
-									    "secretKeyRef": {
-										"key": "password",
-										"name": "mongodb-cred"
-									    }
-									}
-								    }
+                                    } 
 
 
                                      ],
@@ -167,29 +157,10 @@
 										"cpu": "100m",
 										"memory": "256Mi"
 									}
-								},
-								"volumeMounts": [
-									{
-										"mountPath": "/deployments/config",
-										"name": "${NAME}-config"
-									}
-								]
-							}
-						],
-						"volumes": [
-							{
-								"configMap": {
-								    "items": [
-                                        {
-                                            "key": "application-${PROJECT}.properties",
-                                            "path": "application.properties"
-                                        }
-                                    ],
-									"name": "${NAME}"
-								},
-								"name": "${NAME}-config"
+								}
 							}
 						]
+						
 					}
 				}
 			}
