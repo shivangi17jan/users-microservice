@@ -1,0 +1,120 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+labels:
+  template: sonarqube-h2-db-template
+message: A Sonarqube service has been created in your project. You can access using admin/admin.
+metadata:
+  annotations:
+    description: |-
+      Sonarqube service, with H2 DB.
+      NOTE: Data will not be gone despite restarts, but dont use this for production usage.
+    openshift.io/display-name: SonarQube (H2 DB)
+    openshift.io/documentation-url: https://docs.sonarqube.org/
+    openshift.io/long-description: This template deploys a SonarQube server with an embeddable H2 DB.
+    tags: instant-app,sonarqube
+  creationTimestamp: null
+  name: sonarqube-h2-db
+objects:
+- apiVersion: v1
+  kind: Route
+  metadata:
+    annotations:
+      template.openshift.io/expose-uri: http://{.spec.host}{.spec.path}
+    name: ${SONARQUBE_SERVICE_NAME}
+  spec:
+    to:
+      kind: Service
+      name: ${SONARQUBE_SERVICE_NAME}
+    tls:
+      termination: edge
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: ${SONARQUBE_SERVICE_NAME}
+  spec:
+    selector:
+      matchLabels:
+        name: ${SONARQUBE_SERVICE_NAME}
+    template:
+      metadata:
+        labels:
+          name: ${SONARQUBE_SERVICE_NAME}
+      spec:
+        containers:
+        - image: sonarqube:latest
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 30
+            httpGet:
+              path: /
+              port: 9000
+            initialDelaySeconds: 420
+            timeoutSeconds: 3
+          name: sonarqube
+          ports:
+          - containerPort: 9000
+            protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 9000
+            initialDelaySeconds: 3
+            timeoutSeconds: 3
+          resources:
+            limits:
+              memory: 2Gi
+            requests:
+              memory: 2Gi
+          securityContext:
+            capabilities: {}
+            privileged: false
+          terminationMessagePath: /dev/termination-log
+          volumeMounts:
+          - mountPath: /opt/sonarqube/data
+            name: ${SONARQUBE_SERVICE_NAME}-data
+            subPath: data
+          - mountPath: /opt/sonarqube/logs
+            name: ${SONARQUBE_SERVICE_NAME}-data
+            subPath: logs
+          - mountPath: /opt/sonarqube/extensions
+            name: ${SONARQUBE_SERVICE_NAME}-data
+            subPath: extensions
+        restartPolicy: Always
+        volumes:
+        - name: ${SONARQUBE_SERVICE_NAME}-data
+          persistentVolumeClaim:
+            claimName: ${SONARQUBE_SERVICE_NAME}-data-pv
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: ${SONARQUBE_SERVICE_NAME}
+  spec:
+    ports:
+    - port: 9000
+      protocol: TCP
+      targetPort: 9000
+    selector:
+      name: ${SONARQUBE_SERVICE_NAME}
+    sessionAffinity: None
+    type: ClusterIP
+  storageClassName: brightly-general-purpose    
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: ${SONARQUBE_SERVICE_NAME}-data-pv
+  spec:
+    resources:
+      requests:
+        storage: 1Gi
+    accessModes:
+    - ReadWriteOnce
+parameters:
+- description: The name of the OpenShift Service exposed for the SonarQube container.
+  displayName: SonarQube Service Name
+  name: SONARQUBE_SERVICE_NAME
+  value: sonar
+- description: SonarQube container memory limits.
+  displayName: Memory Limits
+  name: SONARQUBE_MEMORY_LIMITS
+  required: true
+  value: 2Gi
